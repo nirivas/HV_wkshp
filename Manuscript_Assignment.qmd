@@ -1,14 +1,29 @@
+---
+title: "Manuscript Assignment = Calcasieu"
+author: "Nicolas Rivas"
+format: 
+ html:
+    code-fold: true
+    code-summary: "Show code"
+    toc: true            # Adds a table of contents
+    toc-depth: 3         # Sets TOC depth to 3 levels
+    number-sections: true # Enables numbered sections
+editor: visual
+---
 
-
-# Load Libraries ----------------------------------------------------------
+```{r Load Libraries}
+#| echo: FALSE
+#| include: FALSE
 
 library(tidyverse)
-
 library(hypervolume)
+library(MuMIn)
 
+```
 
-
-# Load Data ---------------------------------------------------------------
+```{r load data}
+#| echo: TRUE
+#| include: FALSE
 
 df = read.csv("data/LDWFseinedata.csv") |> 
   filter(basin == "Calcasieu") |> 
@@ -20,9 +35,21 @@ df = read.csv("data/LDWFseinedata.csv") |>
   rename(turbidity = tubidity) |> 
   select(-date)
 
+df2 = readRDS('data/first_hvs.rds') |> 
+  mutate(year=as.numeric(year))
 
+df_ov=read_csv("data/first_centDist.csv") 
 
-# Create HVs --------------------------------------------------------------
+dfs_hvs = readRDS('data/first_hvs_species.rds') 
+
+suitability_df = readRDS('data/suitability_df.rds')
+```
+
+# Create HVs
+
+```{r create HVs}
+#| eval: FALSE
+#| echo: TRUE
 
 set.seed(1)
 
@@ -52,19 +79,16 @@ df2 = df2 |>
          centroid = map(hv, \(hv) get_centroid(hv)),
          size = map_dbl(hv, \(hv) get_volume(hv)))
 
-beepr::beep(3)
-
-head(df2)
-
 #saveRDS(df2, 'data/first_hvs.rds') 
 
 
-# Yearly Comparisons ------------------------------------------------------
+```
 
-## Load Data ####
-df2 = readRDS('data/first_hvs.rds') |> 
-  mutate(year=as.numeric(year))
+# Create Yearly Comparisons
 
+```{r yearly comparisons}
+#| eval: FALSE
+#| echo: TRUE
 
 # comparison of across each year
 df_y= tibble(y1 = unique(df2$year),
@@ -112,153 +136,17 @@ beepr::beep(2)
 # save output
 #write_csv(df_ov, 'data/first_centDist.csv')
 
+```
 
+# Temporal stability
 
-## Plotting ####
+## Overlap
 
+Overlap is calculated using the Sorensen index, which is a measure of similarity between two hypervolumes. The Sorensen index ranges from 0 to 1, where 0 indicates no overlap and 1 indicates complete overlap. We see a linear negative trend across time, indicating that the overlap between hypervolumes decreases.
 
+```{r temporal stability - overlap}
+#| echo: TRUE
 
-### Year to Year comparisons ####
-# A common way to look at stability is to plot change over time by plotting the year to year comparisons of each metric. 
-
-df_ov=read_csv("data/first_centDist.csv") 
-
-# filter only single year comparisons
-d = df_ov |> 
-  filter(ychange == 1)
-
-# overlap
-ggplot(d, aes(y2, sorensen,color="blue"))+
-  geom_point(size = 2)+
-  geom_line(linewidth = 1)+
-  labs(x = 'Year', y = 'Overlap')+
-  scale_fill_viridis_d(option = 'turbo')+
-  scale_color_viridis_d(option = 'turbo')+
-  theme_bw()+
-  #facet_wrap(~BASIN, nrow = 2)+
-  theme(axis.title = element_text(size = 14), 
-        axis.text = element_text(size = 14, colour = "gray0"), 
-        plot.title = element_text(size = 14, hjust=0.5),
-        panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank(),
-        legend.position = 'none',
-        legend.title = element_text(size = 14),
-        strip.text.x = element_text(size = 14),
-        legend.text = element_text(size = 12))
-
-# centroid distance 
-ggplot(d, aes(y2, dist_cent))+
-  geom_hline(aes(yintercept = 1), linetype = 'dashed', linewidth = 1)+
-  geom_point(size = 2)+
-  geom_line(linewidth = 1)+
-  labs(x = 'Year', y = 'Centroid distance')+
-  scale_fill_viridis_d(option = 'turbo')+
-  scale_color_viridis_d(option = 'turbo')+
-  theme_bw()+
-  #facet_wrap(~BASIN, nrow = 2)+
-  theme(axis.title = element_text(size = 14), 
-        axis.text = element_text(size = 14, colour = "gray0"), 
-        plot.title = element_text(size = 14, hjust=0.5),
-        panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank(),
-        legend.position = 'none',
-        legend.title = element_text(size = 14),
-        strip.text.x = element_text(size = 14),
-        legend.text = element_text(size = 12))
-
-# log size ratio
-ggplot(d, aes(y2, lsr))+
-  geom_hline(aes(yintercept = 0), linetype = 'dashed', linewidth = 1)+
-  geom_point(size = 2)+
-  geom_line(linewidth = 1)+
-  labs(x = 'Year', y = 'log(y2 size/y1 size)')+
-  scale_fill_viridis_d(option = 'turbo')+
-  scale_color_viridis_d(option = 'turbo')+
-  theme_bw()+
-  #facet_wrap(~BASIN, nrow = 2)+
-  theme(axis.title = element_text(size = 14), 
-        axis.text = element_text(size = 14, colour = "gray0"), 
-        plot.title = element_text(size = 14, hjust=0.5),
-        panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank(),
-        legend.position = 'none',
-        legend.title = element_text(size = 14),
-        strip.text.x = element_text(size = 14),
-        legend.text = element_text(size = 12))
-
-### Compare to baseline ####
-# Another way to look at stability is to plot change relative to a baseline. Here we plot them relative to the first year of the dataset (1986).
-
-# filter only single year comparisons
-d = df_ov |> 
-  filter(y1 == 1986)
-
-# overlap
-ggplot(d, aes(y2, sorensen))+
-  geom_point(size = 2)+
-  geom_line(linewidth = 1)+
-  labs(x = 'Year', y = 'Overlap')+
-  scale_fill_viridis_d(option = 'turbo')+
-  scale_color_viridis_d(option = 'turbo')+
-  theme_bw()+
-  #facet_wrap(~BASIN, nrow = 2)+
-  theme(axis.title = element_text(size = 14), 
-        axis.text = element_text(size = 14, colour = "gray0"), 
-        plot.title = element_text(size = 14, hjust=0.5),
-        panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank(),
-        legend.position = 'none',
-        legend.title = element_text(size = 14),
-        strip.text.x = element_text(size = 14),
-        legend.text = element_text(size = 12))
-
-# centroid distance 
-ggplot(d, aes(y2, dist_cent))+
-  geom_hline(aes(yintercept = 1), linetype = 'dashed', linewidth = 1)+
-  geom_point(size = 2)+
-  geom_line(linewidth = 1)+
-  labs(x = 'Year', y = 'Centroid distance')+
-  scale_fill_viridis_d(option = 'turbo')+
-  scale_color_viridis_d(option = 'turbo')+
-  theme_bw()+
- # facet_wrap(~BASIN, nrow = 2)+
-  theme(axis.title = element_text(size = 14), 
-        axis.text = element_text(size = 14, colour = "gray0"), 
-        plot.title = element_text(size = 14, hjust=0.5),
-        panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank(),
-        legend.position = 'none',
-        legend.title = element_text(size = 14),
-        strip.text.x = element_text(size = 14),
-        legend.text = element_text(size = 12))
-
-
-# log size ratio
-ggplot(d, aes(y2, lsr))+
-  geom_hline(aes(yintercept = 0), linetype = 'dashed', linewidth = 1)+
-  geom_point(size = 2)+
-  geom_line(linewidth = 1)+
-  labs(x = 'Year', y = 'log(y2 size/y1 size)')+
-  scale_fill_viridis_d(option = 'turbo')+
-  scale_color_viridis_d(option = 'turbo')+
-  theme_bw()+
-  #facet_wrap(~BASIN, nrow = 2)+
-  theme(axis.title = element_text(size = 14), 
-        axis.text = element_text(size = 14, colour = "gray0"), 
-        plot.title = element_text(size = 14, hjust=0.5),
-        panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank(),
-        legend.position = 'none',
-        legend.title = element_text(size = 14),
-        strip.text.x = element_text(size = 14),
-        legend.text = element_text(size = 12))
-
-
-
-### Trend in stability ####
-# We can look across the number of years to understand the trend in stability. By fitting three possible models we can determine the trend of time For each metric. When intercept model is the best, we can determine that the trend is static and not changing with the number of years between comparison. If linear, the centroid distance can indicate a shift in state overtime, and a quadratic with a maximum at middle values can indicate a disturbance with recovery in state. 
-
-library(MuMIn)
 # overlap 
 df_o = df_ov |> 
  # group_by(basin) |>
@@ -276,19 +164,19 @@ df_o = df_ov |>
            T ~ 'Quadratic'))
 
 # unnest data 
-d = df_o |> 
+d_o = df_o |> 
   select(data, model) |> 
   unnest(cols = c(data)) 
 
-ggplot(d, aes(ychange, sorensen))+
+ggplot(d_o, aes(ychange, sorensen))+
   geom_point(size = 2.5)+
-  geom_smooth(data = d |> filter(model == 'Intercept'),
+  geom_smooth(data = d_o |> filter(model == 'Intercept'),
               method = 'lm', formula = y~1, 
               linewidth = 1, color = 'black')+
-  geom_smooth(data = d |> filter(model == 'Linear'),
+  geom_smooth(data = d_o |> filter(model == 'Linear'),
               method = 'lm', formula = y~x, 
-              linewidth = 1, color = 'black')+
-  geom_smooth(data = d |> filter(model == 'Quadratic'),
+              linewidth = 1, color = 'blue')+
+  geom_smooth(data = d_o |> filter(model == 'Quadratic'),
               method = 'lm', formula = y~x+I(x^2), 
               linewidth = 1, color = 'black')+
   labs(x = 'Years between comparison', y = 'Overlap')+
@@ -304,6 +192,17 @@ ggplot(d, aes(ychange, sorensen))+
         legend.title = element_text(size = 14),
         strip.text.x = element_text(size = 14),
         legend.text = element_text(size = 12))
+
+
+
+```
+
+## Centroid Distance
+
+Centroid distance increased with time, indicating that the centroid of the hypervolume shifted over time. The linear model was the best fit for the data, indicating a linear increase in centroid distance over time.
+
+```{r temporal stability - Centroid Distance}
+#| echo: TRUE
 
 # centroid distance
 df_cd = df_ov |> 
@@ -321,23 +220,23 @@ df_cd = df_ov |>
            T ~ 'Quadratic'))
 
 # unnest data 
-d = df_cd |> 
+d_cd = df_cd |> 
   select(data, model) |> 
   unnest(cols = c(data))
 
 
-ggplot(d, aes(ychange, dist_cent))+
+ggplot(d_cd, aes(ychange, dist_cent))+
   geom_hline(aes(yintercept = 1), linetype = 'dashed')+
   geom_point(size = 2.5)+
-  geom_smooth(data = d |> filter(model == 'Intercept'),
+  geom_smooth(data = d_cd |> filter(model == 'Intercept'),
               method = 'lm', formula = y~1, 
-              linewidth = 1, color = 'black')+
-  geom_smooth(data = d |> filter(model == 'Linear'),
+              linewidth = 1, color = 'blue')+
+  geom_smooth(data = d_cd |> filter(model == 'Linear'),
               method = 'lm', formula = y~x, 
-              linewidth = 1, color = 'black')+
-  geom_smooth(data = d |> filter(model == 'Quadratic'),
+              linewidth = 1, color = 'blue')+
+  geom_smooth(data = d_cd |> filter(model == 'Quadratic'),
               method = 'lm', formula = y~x+I(x^2), 
-              linewidth = 1, color = 'black')+
+              linewidth = 1, color = 'blue')+
   labs(x = 'Years between comparison', y = 'Centroid distance')+
   scale_color_viridis_d(option = 'turbo')+
   theme_bw()+
@@ -351,6 +250,15 @@ ggplot(d, aes(ychange, dist_cent))+
         legend.title = element_text(size = 14),
         strip.text.x = element_text(size = 14),
         legend.text = element_text(size = 12))
+
+```
+
+## Log Size Ratio
+
+The log size ratio (LSR) is a measure of the change in size of the hypervolume over time. A LSR of 1 indicates no change in size, while a LSR greater than 1 indicates an increase in size and a LSR less than 1 indicates a decrease in size. The LSR decreased over time, indicating that the hypervolume shrank over time. The quadratic model was the best fit for the data, indicating a non-linear decrease in size over time.
+
+```{r temporal stability - log size ratio}
+#| echo: TRUE
 
 # log size ratio
 df_lsr = df_ov |> 
@@ -368,22 +276,22 @@ df_lsr = df_ov |>
            T ~ 'Quadratic'))
 
 # unnest data 
-d = df_lsr |> 
+d_lsr = df_lsr |> 
   select(data, model) |> 
   unnest(cols = c(data)) 
 
-ggplot(d, aes(ychange, lsr))+
+ggplot(d_lsr, aes(ychange, lsr))+
   geom_hline(aes(yintercept = 1), linetype = 'dashed')+
   geom_point(size = 2.5)+
-  geom_smooth(data = d |> filter(model == 'Intercept'),
+  geom_smooth(data = d_lsr |> filter(model == 'Intercept'),
               method = 'lm', formula = y~1, 
-              linewidth = 1, color = 'black')+
-  geom_smooth(data = d |> filter(model == 'Linear'),
+              linewidth = 1, color = 'blue')+
+  geom_smooth(data = d_lsr |> filter(model == 'Linear'),
               method = 'lm', formula = y~x, 
-              linewidth = 1, color = 'black')+
-  geom_smooth(data = d |> filter(model == 'Quadratic'),
+              linewidth = 1, color = 'blue')+
+  geom_smooth(data = d_lsr |> filter(model == 'Quadratic'),
               method = 'lm', formula = y~x+I(x^2), 
-              linewidth = 1, color = 'black')+
+              linewidth = 1, color = 'red')+
   labs(x = 'Years between comparison', y = 'log(y2 size/y1 size)')+
   scale_color_viridis_d(option = 'turbo')+
   theme_bw()+
@@ -398,47 +306,23 @@ ggplot(d, aes(ychange, lsr))+
         strip.text.x = element_text(size = 14),
         legend.text = element_text(size = 12))
 
+```
 
+# Species
 
-# Species -----------------------------------------------------------------
+Using white shrimp, blue crab, brown shrimp
 
-# Using white shrimp, blue crap, brown shrimp
+1.  White Shrimp (Litopenaeus setiferus) Estuarine-dependent species Spawns offshore, juveniles migrate into estuaries Highly sensitive to salinity and temperature
 
-# 1. White Shrimp (Litopenaeus setiferus)
-# Estuarine-dependent species
-# 
-# Spawns offshore, juveniles migrate into estuaries
-# 
-# Highly sensitive to salinity and temperature
-# 
-# 🔶 2. Brown Shrimp (Farfantepenaeus aztecus) — Closely related competitor
-# Similar habitat use to white shrimp
-# 
-# Slightly different seasonal and salinity preferences
-# 
-# Useful for testing niche differentiation or competitive overlap
-# 
-# 🔷 3. Blue Crab (Callinectes sapidus) — Functionally different predator
-# Also estuarine-dependent
-# 
-# Omnivorous predator, unlike shrimp
-# 
-# Occupies broader salinity/temperature range
-# 
-# Useful for testing niche separation between trophic levels
-# 
-# 🧠 This trio lets you ask:
-#   "To what extent do co-occurring estuarine species with differing ecologies (two shrimp and one predator) share environmental niche space in Calcasieu estuary?"
-# 
-# Or alternatively:
-#   
-#   "Do closely related penaeid shrimp partition environmental niche space, and how does that compare to a more distantly related estuarine predator?"
+2.  Brown Shrimp (Farfantepenaeus aztecus) — Closely related competitor Similar habitat use to white shrimp Slightly different seasonal and salinity preferences Useful for testing niche differentiation or competitive overlap
 
+3.  Blue Crab (Callinectes sapidus) — Functionally different predator Also estuarine-dependent Omnivorous predator, unlike shrimp Occupies broader salinity/temperature range Useful for testing niche separation between trophic levels
 
+## First filter, scale and create HVs
 
-
-
-#Filter out species
+```{r species}
+#| echo: TRUE
+#| eval: FALSE
 
 dfs_hvs <- df |>
   filter(species %in% c("white shrimp", "blue crab", "brown shrimp")) |>
@@ -460,26 +344,29 @@ dfs_hvs <- df |>
 
 beepr::beep(3)
 
-#saveRDS(dfs_hvs, 'data/first_hvs_species.rds')
 
-head(dfs_hvs)
+```
 
-
-plot(dfs_hvs$hv[[1]])
-plot(dfs_hvs$hv[[2]])
-plot(dfs_hvs$hv[[3]])
+```{r species - plot hvs}
+#| echo: TRUE
 
 
 hvj = hypervolume_join(dfs_hvs$hv[[1]], dfs_hvs$hv[[2]], dfs_hvs$hv[[3]])
-plot(hvj)
+plot(hvj,
+     colors = c('#0000CC', '#D72638', '#228B22'))
 
+```
 
-# comparison of across each year
+```{r species - comparisons}
+#| echo: TRUE
+#| eval: FALSE
+
+# comparison of across each species
 df_y= tibble(y1 = unique(dfs_hvs$species),
              y2 = unique(dfs_hvs$species)) |> 
   expand(y1,y2)
 
-# make all unique year comparisons 
+# make all unique species comparisons 
 df_y = df_y[!duplicated(t(apply(df_y,1,sort))),] %>% 
   filter(!(y1 == y2))
 
@@ -491,7 +378,7 @@ df2 = dfs_hvs |>
   select(y2 = species, hv2 = hv, hv2_size = size, cent2 = centroid)
 
 
-# create data frame of all data and make yearly comparisons
+# create data frame of all data and make species comparisons
 df_ov = tibble(species = rep(unique(dfs_hvs$species),
                            each = nrow(df_y)),
                y1 = rep(df_y$y1, times = length(unique(dfs_hvs$species))),
@@ -515,15 +402,17 @@ df_ov = tibble(species = rep(unique(dfs_hvs$species),
          uniq_y1 = frac_unique_1, uniq_y2 = frac_unique_2)
 
 # save output
-write_csv(df_ov, 'data/species_centDist.csv')
+#write_csv(df_ov, 'data/species_centDist.csv')
 
-head(df_ov)
-# Species comparisons
+```
 
+# Suitability
 
+## Load Data make comparisons
 
-# Q 3 ---------------------------------------------------------------------
-
+```{r suitability}
+#| echo: TRUE
+#| eval: FALSE
 hv_species = dfs_hvs |> 
   select(species, hv)
 
@@ -560,9 +449,11 @@ suitability_df <- suitability_df |>
 
 # Caused by warning in `hypervolume::hypervolume_inclusion_test()`:
 #   ! Results may have a high error rate. Consider setting fast.or.accurate='accurate'.
+```
 
-saveRDS(suitability_df, 'data/suitability_df.rds')
+Habitat suitability seems to remain stable for blue crabs, fluctuates for brown shrimp but generally stable and decreases for white shrimp near 2018
 
+```{r suitability - plot}
 ggplot(suitability_df, aes(x = year, y = prop_suitable, color = species)) +
   geom_line(linewidth = 1.2) +
   geom_point(size = 2) +
@@ -570,8 +461,4 @@ ggplot(suitability_df, aes(x = year, y = prop_suitable, color = species)) +
   labs(x = "Year", y = "Proportion of Suitable Sites",
        title = "Habitat Suitability Over Time")
 
-
-
-
-
-
+```

@@ -58,7 +58,7 @@ head(df)
 # generate hypervolumes
 df = df |> 
   mutate(hv = map(data, \(data) hypervolume_gaussian(data, name = paste(BASIN,YEAR,sep = '_'),
-                                                     samples.per.point = 1000,
+                                                     samples.per.point = 100,
                                                      kde.bandwidth = estimate_bandwidth(data), 
                                                      sd.count = 3, 
                                                      quantile.requested = 0.95, 
