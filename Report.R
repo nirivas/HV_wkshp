@@ -406,32 +406,32 @@ ggplot(d, aes(ychange, lsr))+
 
 # 1. White Shrimp (Litopenaeus setiferus)
 # Estuarine-dependent species
-# 
+#
 # Spawns offshore, juveniles migrate into estuaries
-# 
+#
 # Highly sensitive to salinity and temperature
-# 
+#
 # 🔶 2. Brown Shrimp (Farfantepenaeus aztecus) — Closely related competitor
 # Similar habitat use to white shrimp
-# 
+#
 # Slightly different seasonal and salinity preferences
-# 
+#
 # Useful for testing niche differentiation or competitive overlap
-# 
+#
 # 🔷 3. Blue Crab (Callinectes sapidus) — Functionally different predator
 # Also estuarine-dependent
-# 
+#
 # Omnivorous predator, unlike shrimp
-# 
+#
 # Occupies broader salinity/temperature range
-# 
+#
 # Useful for testing niche separation between trophic levels
-# 
+#
 # 🧠 This trio lets you ask:
 #   "To what extent do co-occurring estuarine species with differing ecologies (two shrimp and one predator) share environmental niche space in Calcasieu estuary?"
-# 
+#
 # Or alternatively:
-#   
+#
 #   "Do closely related penaeid shrimp partition environmental niche space, and how does that compare to a more distantly related estuarine predator?"
 
 
@@ -474,12 +474,12 @@ hvj = hypervolume_join(dfs_hvs$hv[[1]], dfs_hvs$hv[[2]], dfs_hvs$hv[[3]])
 plot(hvj)
 
 
-# comparison of across each year
+# comparison of across each species
 df_y= tibble(y1 = unique(dfs_hvs$species),
              y2 = unique(dfs_hvs$species)) |> 
   expand(y1,y2)
 
-# make all unique year comparisons 
+# make all unique species comparisons 
 df_y = df_y[!duplicated(t(apply(df_y,1,sort))),] %>% 
   filter(!(y1 == y2))
 
@@ -491,7 +491,7 @@ df2 = dfs_hvs |>
   select(y2 = species, hv2 = hv, hv2_size = size, cent2 = centroid)
 
 
-# create data frame of all data and make yearly comparisons
+# create data frame of all data and make species comparisons
 df_ov = tibble(species = rep(unique(dfs_hvs$species),
                            each = nrow(df_y)),
                y1 = rep(df_y$y1, times = length(unique(dfs_hvs$species))),
@@ -515,7 +515,7 @@ df_ov = tibble(species = rep(unique(dfs_hvs$species),
          uniq_y1 = frac_unique_1, uniq_y2 = frac_unique_2)
 
 # save output
-write_csv(df_ov, 'data/species_centDist.csv')
+#write_csv(df_ov, 'data/species_centDist.csv')
 
 head(df_ov)
 # Species comparisons
@@ -523,6 +523,8 @@ head(df_ov)
 
 
 # Q 3 ---------------------------------------------------------------------
+
+
 
 hv_species = dfs_hvs |> 
   select(species, hv)
@@ -561,7 +563,7 @@ suitability_df <- suitability_df |>
 # Caused by warning in `hypervolume::hypervolume_inclusion_test()`:
 #   ! Results may have a high error rate. Consider setting fast.or.accurate='accurate'.
 
-saveRDS(suitability_df, 'data/suitability_df.rds')
+#saveRDS(suitability_df, 'data/suitability_df.rds')
 
 ggplot(suitability_df, aes(x = year, y = prop_suitable, color = species)) +
   geom_line(linewidth = 1.2) +
