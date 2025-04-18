@@ -612,61 +612,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p>I went ahead and plotted abundance data. No brown shrimp or white shimp were caught in 2019 and in general there was a continous decrease in their abundance numbers.</p>
 <p>We can see that sharp fluctuation in abundance is normal but did not reach zero before 2019. Panel B just has a closer look at the last three years</p>
 <div class="cell">
-<details class="code-fold">
-<summary>Show code</summary>
-<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>target_years <span class="ot">&lt;-</span> <span class="fu">as.character</span>(<span class="dv">1986</span><span class="sc">:</span><span class="dv">2019</span>)</span>
-<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>target_species <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"white shrimp"</span>, <span class="st">"brown shrimp"</span>, <span class="st">"blue crab"</span>)</span>
-<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Fill in missing combinations with 0</span></span>
-<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>species_counts <span class="ot">&lt;-</span> df <span class="sc">|&gt;</span></span>
-<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(species <span class="sc">%in%</span> target_species,</span>
-<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>         year <span class="sc">%in%</span> target_years) <span class="sc">|&gt;</span></span>
-<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(year, species) <span class="sc">|&gt;</span></span>
-<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">n_caught =</span> <span class="fu">sum</span>(num), <span class="at">.groups =</span> <span class="st">"drop"</span>) <span class="sc">|&gt;</span></span>
-<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">complete</span>(<span class="at">year =</span> target_years, <span class="at">species =</span> target_species, <span class="at">fill =</span> <span class="fu">list</span>(<span class="at">n_caught =</span> <span class="dv">0</span>)) <span class="sc">|&gt;</span></span>
-<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(year, species)</span>
-<span id="cb11-12"><a href="#cb11-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-13"><a href="#cb11-13" aria-hidden="true" tabindex="-1"></a>a <span class="ot">=</span> <span class="fu">ggplot</span>(species_counts, <span class="fu">aes</span>(<span class="at">x =</span> <span class="fu">as.numeric</span>(year), <span class="at">y =</span> n_caught, <span class="at">color =</span> species)) <span class="sc">+</span></span>
-<span id="cb11-14"><a href="#cb11-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="at">size =</span> <span class="fl">1.2</span>) <span class="sc">+</span></span>
-<span id="cb11-15"><a href="#cb11-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">size =</span> <span class="fl">2.5</span>) <span class="sc">+</span></span>
-<span id="cb11-16"><a href="#cb11-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_continuous</span>(<span class="at">labels =</span> scales<span class="sc">::</span>comma) <span class="sc">+</span></span>
-<span id="cb11-17"><a href="#cb11-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
-<span id="cb11-18"><a href="#cb11-18" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Abundance of Estuarine Species (1986–2019)"</span>,</span>
-<span id="cb11-19"><a href="#cb11-19" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">"Year"</span>,</span>
-<span id="cb11-20"><a href="#cb11-20" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">"Number Caught"</span>,</span>
-<span id="cb11-21"><a href="#cb11-21" aria-hidden="true" tabindex="-1"></a>    <span class="at">color =</span> <span class="st">"Species"</span></span>
-<span id="cb11-22"><a href="#cb11-22" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
-<span id="cb11-23"><a href="#cb11-23" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_classic</span>(<span class="at">base_size =</span> <span class="dv">14</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</details>
 <div class="cell-output cell-output-stderr">
 <pre><code>Warning: Using `size` aesthetic for lines was deprecated in ggplot2 3.4.0.
 ℹ Please use `linewidth` instead.</code></pre>
 </div>
-<details class="code-fold">
-<summary>Show code</summary>
-<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>species_counts_zoom <span class="ot">&lt;-</span> species_counts <span class="sc">|&gt;</span></span>
-<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="fu">as.numeric</span>(year) <span class="sc">&gt;=</span> <span class="dv">2017</span> <span class="sc">&amp;</span> <span class="fu">as.numeric</span>(year) <span class="sc">&lt;=</span> <span class="dv">2019</span>)</span>
-<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>b <span class="ot">=</span> <span class="fu">ggplot</span>(species_counts_zoom, <span class="fu">aes</span>(<span class="at">x =</span> <span class="fu">as.numeric</span>(year), <span class="at">y =</span> n_caught, <span class="at">color =</span> species)) <span class="sc">+</span></span>
-<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="at">linewidth =</span> <span class="fl">1.2</span>) <span class="sc">+</span></span>
-<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">size =</span> <span class="fl">2.5</span>) <span class="sc">+</span></span>
-<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_x_continuous</span>(<span class="at">breaks =</span> <span class="dv">2017</span><span class="sc">:</span><span class="dv">2019</span>, <span class="at">labels =</span> <span class="dv">2017</span><span class="sc">:</span><span class="dv">2019</span>) <span class="sc">+</span></span>
-<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_continuous</span>(<span class="at">labels =</span> scales<span class="sc">::</span>comma) <span class="sc">+</span></span>
-<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
-<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Abundance of Estuarine Species (2017–2019)"</span>,</span>
-<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">"Year"</span>,</span>
-<span id="cb13-12"><a href="#cb13-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">"Number Caught"</span>,</span>
-<span id="cb13-13"><a href="#cb13-13" aria-hidden="true" tabindex="-1"></a>    <span class="at">color =</span> <span class="st">"Species"</span></span>
-<span id="cb13-14"><a href="#cb13-14" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
-<span id="cb13-15"><a href="#cb13-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_classic</span>(<span class="at">base_size =</span> <span class="dv">14</span>)</span>
-<span id="cb13-16"><a href="#cb13-16" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-17"><a href="#cb13-17" aria-hidden="true" tabindex="-1"></a><span class="fu">ggarrange</span>(a, b,</span>
-<span id="cb13-18"><a href="#cb13-18" aria-hidden="true" tabindex="-1"></a>          <span class="at">ncol =</span> <span class="dv">2</span>, <span class="at">nrow =</span> <span class="dv">1</span>,</span>
-<span id="cb13-19"><a href="#cb13-19" aria-hidden="true" tabindex="-1"></a>          <span class="at">labels =</span> <span class="fu">c</span>(<span class="st">"A"</span>, <span class="st">"B"</span>),</span>
-<span id="cb13-20"><a href="#cb13-20" aria-hidden="true" tabindex="-1"></a>          <span class="at">common.legend =</span> <span class="cn">TRUE</span>,</span>
-<span id="cb13-21"><a href="#cb13-21" aria-hidden="true" tabindex="-1"></a>          <span class="at">legend =</span> <span class="st">"bottom"</span>) <span class="sc">+</span></span>
-<span id="cb13-22"><a href="#cb13-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">plot.title =</span> <span class="fu">element_text</span>(<span class="at">hjust =</span> <span class="fl">0.5</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</details>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
@@ -681,23 +630,23 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p>Upon Further investigation. we see that the habitat suitbability in 2019 changed outsize of the centroid of white shrimp and brown shrimp. It was not longer suitable and had greater changes in magnitude compared to blue crab…..(i think)</p>
 <div class="cell">
 <div class="cell-output-display">
-<div id="mqixsvcwmi" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
-<style>#mqixsvcwmi table {
+<div id="oazlsqcjqo" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<style>#oazlsqcjqo table {
   font-family: system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-#mqixsvcwmi thead, #mqixsvcwmi tbody, #mqixsvcwmi tfoot, #mqixsvcwmi tr, #mqixsvcwmi td, #mqixsvcwmi th {
+#oazlsqcjqo thead, #oazlsqcjqo tbody, #oazlsqcjqo tfoot, #oazlsqcjqo tr, #oazlsqcjqo td, #oazlsqcjqo th {
   border-style: none;
 }
 
-#mqixsvcwmi p {
+#oazlsqcjqo p {
   margin: 0;
   padding: 0;
 }
 
-#mqixsvcwmi .gt_table {
+#oazlsqcjqo .gt_table {
   display: table;
   border-collapse: collapse;
   line-height: normal;
@@ -723,12 +672,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   border-left-color: #D3D3D3;
 }
 
-#mqixsvcwmi .gt_caption {
+#oazlsqcjqo .gt_caption {
   padding-top: 4px;
   padding-bottom: 4px;
 }
 
-#mqixsvcwmi .gt_title {
+#oazlsqcjqo .gt_title {
   color: #333333;
   font-size: 125%;
   font-weight: initial;
@@ -740,7 +689,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   border-bottom-width: 0;
 }
 
-#mqixsvcwmi .gt_subtitle {
+#oazlsqcjqo .gt_subtitle {
   color: #333333;
   font-size: 85%;
   font-weight: initial;
@@ -752,7 +701,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   border-top-width: 0;
 }
 
-#mqixsvcwmi .gt_heading {
+#oazlsqcjqo .gt_heading {
   background-color: #FFFFFF;
   text-align: center;
   border-bottom-color: #FFFFFF;
@@ -764,13 +713,13 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   border-right-color: #D3D3D3;
 }
 
-#mqixsvcwmi .gt_bottom_border {
+#oazlsqcjqo .gt_bottom_border {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D3D3D3;
 }
 
-#mqixsvcwmi .gt_col_headings {
+#oazlsqcjqo .gt_col_headings {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D3D3D3;
@@ -785,7 +734,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   border-right-color: #D3D3D3;
 }
 
-#mqixsvcwmi .gt_col_heading {
+#oazlsqcjqo .gt_col_heading {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -805,7 +754,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   overflow-x: hidden;
 }
 
-#mqixsvcwmi .gt_column_spanner_outer {
+#oazlsqcjqo .gt_column_spanner_outer {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -817,15 +766,15 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   padding-right: 4px;
 }
 
-#mqixsvcwmi .gt_column_spanner_outer:first-child {
+#oazlsqcjqo .gt_column_spanner_outer:first-child {
   padding-left: 0;
 }
 
-#mqixsvcwmi .gt_column_spanner_outer:last-child {
+#oazlsqcjqo .gt_column_spanner_outer:last-child {
   padding-right: 0;
 }
 
-#mqixsvcwmi .gt_column_spanner {
+#oazlsqcjqo .gt_column_spanner {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D3D3D3;
@@ -837,11 +786,11 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   width: 100%;
 }
 
-#mqixsvcwmi .gt_spanner_row {
+#oazlsqcjqo .gt_spanner_row {
   border-bottom-style: hidden;
 }
 
-#mqixsvcwmi .gt_group_heading {
+#oazlsqcjqo .gt_group_heading {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -867,7 +816,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   text-align: left;
 }
 
-#mqixsvcwmi .gt_empty_group_heading {
+#oazlsqcjqo .gt_empty_group_heading {
   padding: 0.5px;
   color: #333333;
   background-color: #FFFFFF;
@@ -882,15 +831,15 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   vertical-align: middle;
 }
 
-#mqixsvcwmi .gt_from_md > :first-child {
+#oazlsqcjqo .gt_from_md > :first-child {
   margin-top: 0;
 }
 
-#mqixsvcwmi .gt_from_md > :last-child {
+#oazlsqcjqo .gt_from_md > :last-child {
   margin-bottom: 0;
 }
 
-#mqixsvcwmi .gt_row {
+#oazlsqcjqo .gt_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -909,7 +858,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   overflow-x: hidden;
 }
 
-#mqixsvcwmi .gt_stub {
+#oazlsqcjqo .gt_stub {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -922,7 +871,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   padding-right: 5px;
 }
 
-#mqixsvcwmi .gt_stub_row_group {
+#oazlsqcjqo .gt_stub_row_group {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -936,15 +885,15 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   vertical-align: top;
 }
 
-#mqixsvcwmi .gt_row_group_first td {
+#oazlsqcjqo .gt_row_group_first td {
   border-top-width: 2px;
 }
 
-#mqixsvcwmi .gt_row_group_first th {
+#oazlsqcjqo .gt_row_group_first th {
   border-top-width: 2px;
 }
 
-#mqixsvcwmi .gt_summary_row {
+#oazlsqcjqo .gt_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   text-transform: inherit;
@@ -954,16 +903,16 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   padding-right: 5px;
 }
 
-#mqixsvcwmi .gt_first_summary_row {
+#oazlsqcjqo .gt_first_summary_row {
   border-top-style: solid;
   border-top-color: #D3D3D3;
 }
 
-#mqixsvcwmi .gt_first_summary_row.thick {
+#oazlsqcjqo .gt_first_summary_row.thick {
   border-top-width: 2px;
 }
 
-#mqixsvcwmi .gt_last_summary_row {
+#oazlsqcjqo .gt_last_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -973,7 +922,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   border-bottom-color: #D3D3D3;
 }
 
-#mqixsvcwmi .gt_grand_summary_row {
+#oazlsqcjqo .gt_grand_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   text-transform: inherit;
@@ -983,7 +932,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   padding-right: 5px;
 }
 
-#mqixsvcwmi .gt_first_grand_summary_row {
+#oazlsqcjqo .gt_first_grand_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -993,7 +942,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   border-top-color: #D3D3D3;
 }
 
-#mqixsvcwmi .gt_last_grand_summary_row_top {
+#oazlsqcjqo .gt_last_grand_summary_row_top {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -1003,11 +952,11 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   border-bottom-color: #D3D3D3;
 }
 
-#mqixsvcwmi .gt_striped {
+#oazlsqcjqo .gt_striped {
   background-color: rgba(128, 128, 128, 0.05);
 }
 
-#mqixsvcwmi .gt_table_body {
+#oazlsqcjqo .gt_table_body {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D3D3D3;
@@ -1016,7 +965,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   border-bottom-color: #D3D3D3;
 }
 
-#mqixsvcwmi .gt_footnotes {
+#oazlsqcjqo .gt_footnotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -1030,7 +979,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   border-right-color: #D3D3D3;
 }
 
-#mqixsvcwmi .gt_footnote {
+#oazlsqcjqo .gt_footnote {
   margin: 0px;
   font-size: 90%;
   padding-top: 4px;
@@ -1039,7 +988,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   padding-right: 5px;
 }
 
-#mqixsvcwmi .gt_sourcenotes {
+#oazlsqcjqo .gt_sourcenotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -1053,7 +1002,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   border-right-color: #D3D3D3;
 }
 
-#mqixsvcwmi .gt_sourcenote {
+#oazlsqcjqo .gt_sourcenote {
   font-size: 90%;
   padding-top: 4px;
   padding-bottom: 4px;
@@ -1061,72 +1010,72 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   padding-right: 5px;
 }
 
-#mqixsvcwmi .gt_left {
+#oazlsqcjqo .gt_left {
   text-align: left;
 }
 
-#mqixsvcwmi .gt_center {
+#oazlsqcjqo .gt_center {
   text-align: center;
 }
 
-#mqixsvcwmi .gt_right {
+#oazlsqcjqo .gt_right {
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
 
-#mqixsvcwmi .gt_font_normal {
+#oazlsqcjqo .gt_font_normal {
   font-weight: normal;
 }
 
-#mqixsvcwmi .gt_font_bold {
+#oazlsqcjqo .gt_font_bold {
   font-weight: bold;
 }
 
-#mqixsvcwmi .gt_font_italic {
+#oazlsqcjqo .gt_font_italic {
   font-style: italic;
 }
 
-#mqixsvcwmi .gt_super {
+#oazlsqcjqo .gt_super {
   font-size: 65%;
 }
 
-#mqixsvcwmi .gt_footnote_marks {
+#oazlsqcjqo .gt_footnote_marks {
   font-size: 75%;
   vertical-align: 0.4em;
   position: initial;
 }
 
-#mqixsvcwmi .gt_asterisk {
+#oazlsqcjqo .gt_asterisk {
   font-size: 100%;
   vertical-align: 0;
 }
 
-#mqixsvcwmi .gt_indent_1 {
+#oazlsqcjqo .gt_indent_1 {
   text-indent: 5px;
 }
 
-#mqixsvcwmi .gt_indent_2 {
+#oazlsqcjqo .gt_indent_2 {
   text-indent: 10px;
 }
 
-#mqixsvcwmi .gt_indent_3 {
+#oazlsqcjqo .gt_indent_3 {
   text-indent: 15px;
 }
 
-#mqixsvcwmi .gt_indent_4 {
+#oazlsqcjqo .gt_indent_4 {
   text-indent: 20px;
 }
 
-#mqixsvcwmi .gt_indent_5 {
+#oazlsqcjqo .gt_indent_5 {
   text-indent: 25px;
 }
 
-#mqixsvcwmi .katex-display {
+#oazlsqcjqo .katex-display {
   display: inline-flex !important;
   margin-bottom: 0.75em !important;
 }
 
-#mqixsvcwmi div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
+#oazlsqcjqo div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
   height: 0px !important;
 }
 </style>

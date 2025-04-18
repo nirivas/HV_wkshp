@@ -540,7 +540,8 @@ I went ahead and plotted abundance data. No brown shrimp or white shimp were cau
 We can see that sharp fluctuation in abundance is normal but did not reach zero before 2019. Panel B just has a closer look at the last three years
 
 ```{r - abundance}
-#| echo: TRUE
+#| echo: FALSE
+
 
 target_years <- as.character(1986:2019)
 target_species <- c("white shrimp", "brown shrimp", "blue crab")
