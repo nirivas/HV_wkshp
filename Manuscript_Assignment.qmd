@@ -18,6 +18,8 @@ editor: visual
 library(tidyverse)
 library(hypervolume)
 library(MuMIn)
+library(ggpubr)
+library(gt)
 
 ```
 
@@ -347,6 +349,8 @@ beepr::beep(3)
 
 ```
 
+## HV plots
+
 ```{r species - plot hvs}
 #| echo: TRUE
 
@@ -406,6 +410,70 @@ df_ov = tibble(species = rep(unique(dfs_hvs$species),
 
 ```
 
+## Niche SIze
+
+Nice size of the three species
+
+```{r species - plot size}
+#| echo: FALSE
+
+dfs_hvs |>
+  select(species, size) |>
+  ggplot(aes(x = species, y = 1, size = size, fill = species)) +
+  geom_point(shape = 21, color = "black") +
+  geom_text(aes(label = round(size, 2)), vjust = -3, size = 9) +  # nicely formatted labels
+  scale_size_continuous(range = c(10, 40)) +
+  labs(
+    title = "Niche Size of Estuarine Species",
+    x = "Species",
+    y = NULL
+  ) +
+  guides(size = "none", fill = "none") +  # remove legends
+  theme_classic(base_size = 14) +
+  theme(
+    axis.text.y = element_blank(),
+    axis.ticks.y = element_blank(),
+    panel.grid.major.y = element_blank()
+  )
+```
+
+## Overlap
+
+```{r species - table overlap}
+#| echo: FALSE
+#| eval: FALSE
+
+df_ov_dedup <- df_ov |> 
+  group_by(y1, y2) |> 
+  summarise(across(where(is.numeric), mean), .groups = "drop") 
+
+df_ov_dedup |>
+  mutate(across(where(is.numeric), ~ round(., 3))) |>
+  gt() |>
+  tab_header(
+    title = "Pairwise Niche Overlap and Dissimilarity Metrics"
+  ) |>
+  cols_label(
+    y1 = "Species 1",
+    y2 = "Species 2",
+    lsr = "Log Size Ratio",
+    dist_cent = "Centroid Distance",
+    jaccard = "Jaccard",
+    sorensen = "Sorensen",
+    uniq_y1 = "Unique to Species 1",
+    uniq_y2 = "Unique to Species 2"
+  )
+
+
+
+```
+![Pairwise Niche Overlap Table](images/niche_overlap_table.png)
+
+
+Heatmap of similarity between species using Sorensen
+
+![Niche Overlap Heatmap](sorensen_heatmap.png)
+
 # Suitability
 
 ## Load Data make comparisons
@@ -451,6 +519,8 @@ suitability_df <- suitability_df |>
 #   ! Results may have a high error rate. Consider setting fast.or.accurate='accurate'.
 ```
 
+## Habitat Suitability/Time
+
 Habitat suitability seems to remain stable for blue crabs, fluctuates for brown shrimp but generally stable and decreases for white shrimp near 2018
 
 ```{r suitability - plot}
@@ -460,5 +530,93 @@ ggplot(suitability_df, aes(x = year, y = prop_suitable, color = species)) +
   theme_bw() +
   labs(x = "Year", y = "Proportion of Suitable Sites",
        title = "Habitat Suitability Over Time")
+
+```
+
+## Species Abundance
+
+I went ahead and plotted abundance data. No brown shrimp or white shimp were caught in 2019 and in general there was a continous decrease in their abundance numbers.
+
+We can see that sharp fluctuation in abundance is normal but did not reach zero before 2019. Panel B just has a closer look at the last three years
+
+```{r - abundance}
+#| echo: TRUE
+
+target_years <- as.character(1986:2019)
+target_species <- c("white shrimp", "brown shrimp", "blue crab")
+
+# Fill in missing combinations with 0
+species_counts <- df |>
+  filter(species %in% target_species,
+         year %in% target_years) |>
+  group_by(year, species) |>
+  summarise(n_caught = sum(num), .groups = "drop") |>
+  complete(year = target_years, species = target_species, fill = list(n_caught = 0)) |>
+  arrange(year, species)
+
+a = ggplot(species_counts, aes(x = as.numeric(year), y = n_caught, color = species)) +
+  geom_line(size = 1.2) +
+  geom_point(size = 2.5) +
+  scale_y_continuous(labels = scales::comma) +
+  labs(
+    title = "Abundance of Estuarine Species (1986–2019)",
+    x = "Year",
+    y = "Number Caught",
+    color = "Species"
+  ) +
+  theme_classic(base_size = 14)
+
+species_counts_zoom <- species_counts |>
+  filter(as.numeric(year) >= 2017 & as.numeric(year) <= 2019)
+
+b = ggplot(species_counts_zoom, aes(x = as.numeric(year), y = n_caught, color = species)) +
+  geom_line(linewidth = 1.2) +
+  geom_point(size = 2.5) +
+  scale_x_continuous(breaks = 2017:2019, labels = 2017:2019) +
+  scale_y_continuous(labels = scales::comma) +
+  labs(
+    title = "Abundance of Estuarine Species (2017–2019)",
+    x = "Year",
+    y = "Number Caught",
+    color = "Species"
+  ) +
+  theme_classic(base_size = 14)
+
+ggarrange(a, b,
+          ncol = 2, nrow = 1,
+          labels = c("A", "B"),
+          common.legend = TRUE,
+          legend = "bottom") +
+  theme(plot.title = element_text(hjust = 0.5))
+
+```
+
+## 2019 Suitability
+
+Upon Further investigation. we see that the habitat suitbability in 2019 changed outsize of the centroid of white shrimp and brown shrimp. It was not longer suitable and had greater changes in magnitude compared to blue crab.....(i think)
+
+```{r - suitability - 2019}
+#| echo: FALSE
+#| message: false
+
+suitability_2019_summary = read_csv("data/suitability_2019_summary.csv")
+
+
+suitability_2019_summary |> 
+  mutate(across(where(is.numeric), ~ round(., 2))) |>
+  gt() |>
+  tab_header(
+    title = "Habitat Suitability and Niche Deviation (2019)"
+  ) |>
+  cols_label(
+    species = "Species",
+    prop_suitable = "Prop. Suitable",
+    salinity = "Δ Salinity",
+    watertemp = "Δ Water Temp",
+    turbidity = "Δ Turbidity",
+    airtemp = "Δ Air Temp"
+  ) |>
+  fmt_number(everything(), decimals = 2)
+
 
 ```

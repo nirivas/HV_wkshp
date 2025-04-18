@@ -638,3 +638,53 @@ ggplot(df_all, aes(axis, imp_lsr, fill = BASIN))+
         legend.text = element_text(size = 12))
 
 
+plot(dfs_hvs$hv[[1]])
+plot(dfs_hvs$hv[[2]])
+plot(dfs_hvs$hv[[3]])
+
+
+hvj = hypervolume_join(dfs_hvs$hv[[1]], dfs_hvs$hv[[2]], dfs_hvs$hv[[3]])
+plot(hvj)
+
+# comparison of across each year
+df_y= tibble(y1 = unique(df$YEAR),
+             y2 = unique(df$YEAR)) |> 
+  expand(y1,y2)
+
+# make all unique year comparisons 
+df_y = df_y[!duplicated(t(apply(df_y,1,sort))),] %>% 
+  filter(!(y1 == y2))
+
+# make two df to join all unique comparisons  
+df1 = df |> 
+  select(BASIN, y1 = YEAR, hv1 = hv, hv1_size = size, cent1 = centroid)
+
+df2 = df |> 
+  select(BASIN, y2 = YEAR, hv2 = hv, hv2_size = size, cent2 = centroid)
+
+
+# create data frame of all data and make yearly comparisons
+df_ov = tibble(BASIN = rep(unique(df$BASIN),
+                           each = nrow(df_y)),
+               y1 = rep(df_y$y1, times = length(unique(df$BASIN))),
+               y2 = rep(df_y$y2, times = length(unique(df$BASIN)))) |> 
+  inner_join(df1, by = c('BASIN', 'y1')) |> 
+  inner_join(df2, by = c('BASIN', 'y2')) |> 
+  mutate(ychange = y2-y1,
+  # calculate the differnces in size 
+         lsr = log(hv2_size/hv1_size),
+  # join hypervolumees in a set for cverlap
+         set = map2(hv1,hv2, \(hv1, hv2) hypervolume_set(hv1, hv2, check.memory = F, verbose = F)),
+  # calculate overlap
+         ov = map(set, \(set) hypervolume_overlap_statistics(set)),
+  # calculate centroid distance 
+         dist_cent = map2_dbl(hv1, hv2, \(hv1,hv2) hypervolume_distance(hv1, hv2, type = 'centroid', check.memory=F))) |> 
+  #unnest centroid differences
+  unnest_wider(ov) |> 
+  # select only metrics of interest
+  select(BASIN, y1, y2, ychange,lsr,
+         dist_cent, jaccard, sorensen,
+         uniq_y1 = frac_unique_1, uniq_y2 = frac_unique_2)
+
+# save output
+write_csv(df_ov, 'data/SAV_centDist.csv')
