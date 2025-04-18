@@ -462,6 +462,8 @@ beepr::beep(3)
 
 #saveRDS(dfs_hvs, 'data/first_hvs_species.rds')
 
+dfs_hvs=readRDS('data/first_hvs_species.rds')
+
 head(dfs_hvs)
 
 
@@ -520,6 +522,64 @@ df_ov = tibble(species = rep(unique(dfs_hvs$species),
 head(df_ov)
 # Species comparisons
 
+df_ov=read_csv('data/species_centDist.csv')
+
+
+
+
+
+
+dfs_hvs |>
+  select(species, size) |>
+  ggplot(aes(x = species, y = size, fill = species)) +
+  geom_col(width = 0.6, show.legend = FALSE) +
+  labs(
+    title = "Overall Niche Size of Estuarine Species",
+    x = "Species",
+    y = "Hypervolume Size"
+  ) +
+  theme_minimal(base_size = 14)+
+  geom_text(aes(label = round(size, 3)), vjust = -0.3, size = 5)
+
+
+dfs_hvs |>
+  select(species, size) |>
+  ggplot(aes(x = species, y = 1, size = size, fill = species)) +
+  geom_point(shape = 21, color = "black") +
+  geom_text(aes(label = round(size, 2)), vjust = -3, size = 9) +  # nicely formatted labels
+  scale_size_continuous(range = c(10, 40)) +
+  labs(
+    title = "Niche Size of Estuarine Species",
+    x = "Species",
+    y = NULL
+  ) +
+  guides(size = "none", fill = "none") +  # remove legends
+  theme_classic(base_size = 14) +
+  theme(
+    axis.text.y = element_blank(),
+    axis.ticks.y = element_blank(),
+    panel.grid.major.y = element_blank()
+  )
+
+
+df_ov_dedup <- df_ov |> 
+  group_by(y1, y2) |> 
+  summarise(across(where(is.numeric), mean), .groups = "drop")
+
+ggplot(df_ov_dedup, aes(x = y1, y = y2, fill = sorensen)) +
+  geom_tile(color = "white") +
+  geom_text(aes(label = round(sorensen, 2)), size = 4) +
+  scale_fill_viridis_c(option = "magma", direction = -1, limits = c(0, 1)) +
+  labs(
+    title = "Pairwise Niche Overlap (Sorensen Similarity)",
+    x = "Species 1",
+    y = "Species 2",
+    fill = "Sorensen"
+  ) +
+  theme_classic(base_size = 14)
+
+ggsave("sorensen_heatmap.png", plot = last_plot(), width = 10, height = 8, dpi = 300)
+
 
 
 # Q 3 ---------------------------------------------------------------------
@@ -565,6 +625,8 @@ suitability_df <- suitability_df |>
 
 #saveRDS(suitability_df, 'data/suitability_df.rds')
 
+suitability_df = readRDS('data/suitability_df.rds')
+
 ggplot(suitability_df, aes(x = year, y = prop_suitable, color = species)) +
   geom_line(linewidth = 1.2) +
   geom_point(size = 2) +
@@ -573,7 +635,132 @@ ggplot(suitability_df, aes(x = year, y = prop_suitable, color = species)) +
        title = "Habitat Suitability Over Time")
 
 
+suitability_df2 <- suitability_df |>
+  mutate(
+    n_points = map_int(data, nrow),
+    prop_suitable = ifelse(n_points < 20, NA, 
+                           map2_dbl(hv, data, ~{
+                             points_inside <- hypervolume::hypervolume_inclusion_test(.x, .y)
+                             mean(points_inside)
+                           }))
+  )
 
 
 
+species_counts <- df |>
+  filter(species %in% c("white shrimp", "brown shrimp", "blue crab"),
+         year %in% c("2015", "2016", "2017", "2018", "2019")) |>
+  group_by(year, species) |>
+  summarise(n_caught = sum(num), .groups = "drop") |>
+  arrange(year, species)
+
+print(species_counts)
+
+target_years <- as.character(1986:2019)
+target_species <- c("white shrimp", "brown shrimp", "blue crab")
+
+# Fill in missing combinations with 0
+species_counts <- df |>
+  filter(species %in% target_species,
+         year %in% target_years) |>
+  group_by(year, species) |>
+  summarise(n_caught = sum(num), .groups = "drop") |>
+  complete(year = target_years, species = target_species, fill = list(n_caught = 0)) |>
+  arrange(year, species)
+
+ggplot(species_counts, aes(x = as.numeric(year), y = n_caught, color = species)) +
+  geom_line(size = 1.2) +
+  geom_point(size = 2.5) +
+  scale_y_continuous(labels = scales::comma) +
+  labs(
+    title = "Abundance of Estuarine Species (1986–2019)",
+    x = "Year",
+    y = "Number Caught",
+    color = "Species"
+  ) +
+  theme_classic(base_size = 14)
+
+
+species_counts_zoom <- species_counts |>
+  filter(as.numeric(year) >= 2017 & as.numeric(year) <= 2019)
+
+ggplot(species_counts_zoom, aes(x = as.numeric(year), y = n_caught, color = species)) +
+  geom_line(size = 1.2) +
+  geom_point(size = 2.5) +
+  scale_x_continuous(breaks = 2017:2019, labels = 2017:2019) +
+  scale_y_continuous(labels = scales::comma) +
+  labs(
+    title = "Abundance of Estuarine Species (2017–2019)",
+    x = "Year",
+    y = "Number Caught",
+    color = "Species"
+  ) +
+  theme_classic(base_size = 14)
+
+
+
+
+white_hv <- dfs_hvs |>
+  filter(species == "white shrimp") |>
+  pull(hv)
+
+white_hv <- white_hv[[1]]
+
+env_2019 <- env_scaled |>
+  filter(year == "2019") |>
+  pull(data)
+
+env_2019 <- env_2019[[1]]
+
+points_inside <- hypervolume::hypervolume_inclusion_test(white_hv, env_2019)
+prop_suitable_2019 <- mean(points_inside)
+
+points_inside <- hypervolume::hypervolume_inclusion_test(
+  white_hv,
+  env_2019,
+  fast.or.accurate = "accurate"
+)
+
+prop_suitable_2019 <- mean(points_inside)
+
+
+white_centroid <- dfs_hvs |>
+  filter(species == "white shrimp") |>
+  pull(centroid)
+
+white_centroid <- white_centroid[[1]]
+
+# Get means of scaled 2019 environmental variables
+env_2019_mean <- colMeans(env_2019)
+
+# Difference from centroid
+env_2019_mean - white_centroid
+
+
+env_2019 <- env_scaled |>
+  filter(year == "2019") |>
+  pull(data)
+
+env_2019_data <- env_2019[[1]]
+
+suitability_2019_summary <- dfs_hvs |>
+  select(species, hv, centroid) |>
+  mutate(
+    env_2019 = list(env_2019_data),
+    
+    prop_suitable = map2_dbl(hv, env_2019, ~ {
+      if (nrow(.y) < 5) return(NA_real_)  # safeguard
+      points_inside <- hypervolume::hypervolume_inclusion_test(.x, .y, fast.or.accurate = "accurate")
+      mean(points_inside)
+    }),
+    
+    env_2019_mean = map(env_2019, colMeans),
+    
+    diff_from_centroid = map2(env_2019_mean, centroid, ~ .x - .y)
+  ) |>
+  select(species, prop_suitable, diff_from_centroid) |>
+  unnest_wider(diff_from_centroid)
+
+
+write_csv(suitability_2019_summary, "data/suitability_2019_summary.csv")
 

@@ -140,6 +140,90 @@ beepr::beep(2)
 
 ```
 
+Overlap
+```{r yearly comparisons - plot}
+#| echo: FALSE
+d = df_ov |> 
+  filter(ychange == 1)
+
+# overlap
+ggplot(d, aes(y2, sorensen,color="blue"))+
+  geom_point(size = 2)+
+  geom_line(linewidth = 1)+
+  labs(x = 'Year', y = 'Overlap')+
+  scale_fill_viridis_d(option = 'turbo')+
+  scale_color_viridis_d(option = 'turbo')+
+  theme_bw()+
+  #facet_wrap(~BASIN, nrow = 2)+
+  theme(axis.title = element_text(size = 14), 
+        axis.text = element_text(size = 14, colour = "gray0"), 
+        plot.title = element_text(size = 14, hjust=0.5),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        legend.position = 'none',
+        legend.title = element_text(size = 14),
+        strip.text.x = element_text(size = 14),
+        legend.text = element_text(size = 12))
+
+
+
+
+
+```
+
+Centroid Distance
+```{r yearly comparisons - plot2}
+#| echo: FALSE
+
+# centroid distance 
+ggplot(d, aes(y2, dist_cent))+
+  geom_hline(aes(yintercept = 1), linetype = 'dashed', linewidth = 1)+
+  geom_point(size = 2)+
+  geom_line(linewidth = 1)+
+  labs(x = 'Year', y = 'Centroid distance')+
+  scale_fill_viridis_d(option = 'turbo')+
+  scale_color_viridis_d(option = 'turbo')+
+  theme_bw()+
+  #facet_wrap(~BASIN, nrow = 2)+
+  theme(axis.title = element_text(size = 14), 
+        axis.text = element_text(size = 14, colour = "gray0"), 
+        plot.title = element_text(size = 14, hjust=0.5),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        legend.position = 'none',
+        legend.title = element_text(size = 14),
+        strip.text.x = element_text(size = 14),
+        legend.text = element_text(size = 12))
+
+```
+
+LSR
+
+```{r yearly comparisons - plot3}
+#| echo: FALSE
+
+# log size ratio
+ggplot(d, aes(y2, lsr))+
+  geom_hline(aes(yintercept = 0), linetype = 'dashed', linewidth = 1)+
+  geom_point(size = 2)+
+  geom_line(linewidth = 1)+
+  labs(x = 'Year', y = 'log(y2 size/y1 size)')+
+  scale_fill_viridis_d(option = 'turbo')+
+  scale_color_viridis_d(option = 'turbo')+
+  theme_bw()+
+  #facet_wrap(~BASIN, nrow = 2)+
+  theme(axis.title = element_text(size = 14), 
+        axis.text = element_text(size = 14, colour = "gray0"), 
+        plot.title = element_text(size = 14, hjust=0.5),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        legend.position = 'none',
+        legend.title = element_text(size = 14),
+        strip.text.x = element_text(size = 14),
+        legend.text = element_text(size = 12))
+
+```
+
 # Temporal stability
 
 ## Overlap
