@@ -140,7 +140,8 @@ beepr::beep(2)
 
 ```
 
-Overlap
+## Overlap
+
 ```{r yearly comparisons - plot}
 #| echo: FALSE
 d = df_ov |> 
@@ -171,7 +172,8 @@ ggplot(d, aes(y2, sorensen,color="blue"))+
 
 ```
 
-Centroid Distance
+## Centroid Distance
+
 ```{r yearly comparisons - plot2}
 #| echo: FALSE
 
@@ -197,7 +199,7 @@ ggplot(d, aes(y2, dist_cent))+
 
 ```
 
-LSR
+## LSR
 
 ```{r yearly comparisons - plot3}
 #| echo: FALSE
@@ -551,8 +553,8 @@ df_ov_dedup |>
 
 
 ```
-![Pairwise Niche Overlap Table](images/niche_overlap_table.png)
 
+![Pairwise Niche Overlap Table](images/niche_overlap_table.png)
 
 Heatmap of similarity between species using Sorensen
 
